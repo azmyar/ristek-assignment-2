@@ -21,7 +21,7 @@ interface Category {
     amount: number
 }
 
-const categories : any[]= [
+const categories : {id: string, name: string}[]= [
   {
     "id": "fa8337a7-a4b7-4257-a322-9d51473d9fc4",
     "name": "Personal Expenses"
@@ -267,7 +267,6 @@ app.get('/expense/:id', (req,res) => {
       }
     }
     res.send(`Expense with id ${req.params.id} not found!`)
-
 });
 
 /**
@@ -299,19 +298,58 @@ app.delete('/expense/:id', (req,res) => {
   res.send(`Expense with id ${req.params.id} not found`)
 });
 
-// TODO
 /**
  * @swagger
  * /expense/{id}:
  *  put:
- *      description: Retrieve List of Expenses
- * 
+ *      description: Update Expenses
+ *
+ *      parameters:
+ *      - in: path
+ *        name: id
+ *        schema:
+ *          type: string
+ *        description: Expense ID
+ *
  *      responses:
  *          200:
- *              description: List of Expense   
+ *              description: Success
  */
-app.put('/expense/category', (req,res) => {
-    res.send();
+app.put('/expense/:id', (req,res) => {
+    let body = req.body;
+    let newExpense : Expense = {
+        "id": crypto.randomUUID(),
+        "name": "",
+        "category": {
+            "id": "",
+            "name": "",
+            "amount": 0,
+        },
+    };
+    let categoryName = ""
+
+    for (let index = 0; index < categories.length; index++) {
+        if (categories[index].id === body.category){
+            categoryName = categories[index].name
+        }
+    }
+
+    for (let index = 0; index < expenses.length; index++) {
+        if (expenses[index].id === req.params.id){
+
+            newExpense = {
+                "id": expenses[index].id,
+                "name": body.name,
+                "category": {
+                    "id": body.category,
+                    "name": categoryName,
+                    "amount": body.amount,
+                },
+            }
+            expenses.splice(index, 1, newExpense);
+        }
+    }
+    res.send(newExpense)
 });
 
 // Swagger
