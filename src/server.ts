@@ -1,87 +1,43 @@
+import express from 'express';
+import bodyParser from 'body-parser';
+
 import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
-import express from 'express';
-import crypto from 'crypto';
-import bodyParser from 'body-parser';
-import { UUID } from "crypto";
+
+import schema from './schema';
+import { Expense } from "./interfaces";
+import { categories, expenses } from "./data";
 
 const app = express();
-app.use(bodyParser.json())
 const port = 3000;
 
-interface Expense {
-    id : UUID;
-    name : string;
-    category : Category
-}
+// Swagger
+const options = {
+    definition: {
+      swagger: "2.0",
+      openapi: "3.1.0",
+      info: {
+        title: "Expense API",
+        version: "0.1.0",
+        description: "Simple CRUD expense API documentation",
+        license: {
+            name: "MIT",
+            url: "https://spdx.org/licenses/MIT.html",
+          },
+      },
+      servers: [
+        {
+          url: "http://localhost:3000",
+        },
+      ],
+      
+    },
+    apis: ["./dist/*.js"],
+};
+const specs = swaggerJsdoc(options);
 
-interface Category {
-    id : string;
-    name : string;
-    amount: number
-}
-
-const categories : {id: string, name: string}[]= [
-  {
-    "id": "fa8337a7-a4b7-4257-a322-9d51473d9fc4",
-    "name": "Personal Expenses"
-  },
-  {
-    "id": "0c1dab86-8538-498f-af58-17b54de01d3d",
-    "name": "Food"
-  },
-  {
-    "id": "3d73aaae-d2cf-441c-9a91-5c2ab7c1f5ed",
-    "name": "Housing"
-  },
-  {
-    "id": "3f5d8771-e77a-402e-833d-66eeffaeae16",
-    "name": "Transportation"
-  }
-]
-
-const expenses: Expense[] = [
-  {
-    "id": "fa8337a7-a4b7-4257-a322-9d51473d9fc3",
-    "name": "string",
-    "category": {
-      "id" : "fa8337a7-a4b7-4257-a322-9d51473d9fc1", 
-      "name" : "Food",     
-      "amount": 1
-    }
-
-  },
-  {
-    "id": "0c1dab86-8538-498f-af58-17b54de01d3c",
-    "name": "string",
-    "category": {
-      "id" : "fa8337a7-a4b7-4257-a322-9d51473d9fc2", 
-      "name" : "Food",     
-      "amount": 6
-    }
-
-  },
-  {
-    "id": "3d73aaae-d2cf-441c-9a91-5c2ab7c1f5ec",
-    "name": "string",
-    "category": {
-      "id" : "fa8337a7-a4b7-4257-a322-9d51473d9fc4", 
-      "name" : "Transportation",     
-      "amount": 1
-  }
-
-  },
-  {
-    "id": "3f5d8771-e77a-402e-833d-66eeffaeae15",
-    "name": "string",
-    "category": {
-      "id" : "fa8337a7-a4b7-4257-a322-9d51473d9fc4", 
-      "name" : "Personal Expenses",     
-      "amount": 1
-    }
-
-  }
-]
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
+app.use(bodyParser.json())
 
 /**
  * @swagger
@@ -168,7 +124,6 @@ app.get('/expense', (req,res) => {
  *              name:
  *                  type: string
  */ 
-
 /**
  * @swagger
  * /expense:
@@ -186,12 +141,26 @@ app.get('/expense', (req,res) => {
  *              description: List of Expense   
  */
 app.post('/expense', (req,res) => {
+
     let body = req.body;
     let categoryName = ""
+
+    const {error, value} = schema.validate(body, {abortEarly : false})
+
+    if (error) {
+
+        let errorMessage = ""
+        for (let index = 0; index < error.details.length; index++) {
+            errorMessage += error.details[index].message + "\n"
+        }
+
+        return res.send (errorMessage)
+    }
 
     for (let index = 0; index < categories.length; index++) {
         if (categories[index].id === body.category){
             categoryName = categories[index].name
+            break;
         }
     }
 
@@ -296,6 +265,7 @@ app.delete('/expense/:id', (req,res) => {
     }
   }
   res.send(`Expense with id ${req.params.id} not found`)
+  
 });
 
 /**
@@ -328,6 +298,18 @@ app.put('/expense/:id', (req,res) => {
     };
     let categoryName = ""
 
+    const {error, value} = schema.validate(body, {abortEarly : false})
+
+    if (error) {
+
+        let errorMessage = ""
+        for (let index = 0; index < error.details.length; index++) {
+            errorMessage += error.details[index].message + "\n"
+        }
+        
+        return res.send (errorMessage)
+    }
+
     for (let index = 0; index < categories.length; index++) {
         if (categories[index].id === body.category){
             categoryName = categories[index].name
@@ -347,40 +329,11 @@ app.put('/expense/:id', (req,res) => {
                 },
             }
             expenses.splice(index, 1, newExpense);
+            break;
         }
     }
     res.send(newExpense)
 });
-
-// Swagger
-const options = {
-    definition: {
-      swagger: "2.0",
-      openapi: "3.1.0",
-      info: {
-        title: "Expense API",
-        version: "0.1.0",
-        description: "Simple CRUD expense API documentation",
-        license: {
-            name: "MIT",
-            url: "https://spdx.org/licenses/MIT.html",
-          },
-      },
-      servers: [
-        {
-          url: "http://localhost:3000",
-        },
-      ],
-      
-    },
-    apis: ["./dist/*.js"],
-  };
-const specs = swaggerJsdoc(options);
-app.use(
-    "/api-docs",
-    swaggerUi.serve,
-    swaggerUi.setup(specs)
-);
 
 // Listener
 app.listen(port, () => {
