@@ -1,4 +1,5 @@
 import express from 'express';
+import crypto from 'crypto';
 import bodyParser from 'body-parser';
 
 import swaggerJsdoc from "swagger-jsdoc";
@@ -8,64 +9,15 @@ import schema from './schema';
 import { Expense } from "./interfaces";
 import { categories, expenses } from "./data";
 
+import * as swagger from "../swagger.json";
+
 const app = express();
 const port = 3000;
-
-// Swagger
-const options = {
-    definition: {
-      swagger: "2.0",
-      openapi: "3.1.0",
-      info: {
-        title: "Expense API",
-        version: "0.1.0",
-        description: "Simple CRUD expense API documentation",
-        license: {
-            name: "MIT",
-            url: "https://spdx.org/licenses/MIT.html",
-          },
-      },
-      servers: [
-        {
-          url: "http://localhost:3000",
-        },
-      ],
-      
-    },
-    apis: ["./dist/*.js"],
-};
-const specs = swaggerJsdoc(options);
+const specs = swaggerJsdoc(swagger);
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 app.use(bodyParser.json())
 
-/**
- * @swagger
- * /expense:
- *  get:
- *      description: Retrieve List of Expenses
- * 
- *      parameters:
- *      - in: query
- *        name: category_id
- *        description: id of the category
- *        schema:
- *          type: string
- *      - in: query
- *        name: min_price
- *        description: minimum price
- *        schema:
- *          type: integer
- *      - in: query
- *        name: max_price
- *        description: maximum price
- *        schema:
- *          type: integer
- * 
- *      responses:
- *          "200":
- *              description: List of Expenses
- */
 app.get('/expense', (req,res) => {
     const category_id = req.query.category_id?.toString();
     const min_price = req.query.min_price;
@@ -112,34 +64,6 @@ app.get('/expense', (req,res) => {
     res.send(newExpenses);
 });
 
-/**
- * @swagger
- * components:
- *  schemas:
- *      Request:
- *          type: object
- *          properties:
- *              id:
- *                  type: integer
- *              name:
- *                  type: string
- */ 
-/**
- * @swagger
- * /expense:
- *  post:
- *      description: Create New Expense
- *      requestBody:
- *          required: true
- *          content:
- *              application/json:
- *                  schema:
- *                      $ref: '#components/schemas/Request'
- * 
- *      responses:
- *          200:
- *              description: List of Expense   
- */
 app.post('/expense', (req,res) => {
 
     let body = req.body;
@@ -178,28 +102,10 @@ app.post('/expense', (req,res) => {
     res.send(newExpense);
 })
 
-/**
- * @swagger
- * /expense/category:
- *  get:
- *      description: Retrieve List of Expense Category
- *      responses:
- *          200:
- *              description: List of Expense Category
- */
 app.get('/expense/category', (req,res) => {
     res.send(categories);
 });
 
-/**
- * @swagger
- * /expense/total:
- *  get:
- *      description: Retrieve Amount of Total Expenses
- *      responses:
- *          200:
- *              description: Amount of Total Expenses
- */
 app.get('/expense/total', (req,res) => {
   var total: number = 0;
   expenses.map((e) => (
@@ -210,23 +116,6 @@ app.get('/expense/total', (req,res) => {
   });
 });
 
-/**
- * @swagger
- * /expense/{id}:
- *  get:
- *      description: Retrieve Detail of Expenses
- * 
- *      parameters:
- *      - in: path
- *        name: id
- *        schema:
- *          type: string
- *        description: id of the category
- * 
- *      responses:
- *          200:
- *              description: Detail of Expenses   
- */
 app.get('/expense/:id', (req,res) => {
 
     for (let index = 0; index < expenses.length; index++) {
@@ -238,23 +127,6 @@ app.get('/expense/:id', (req,res) => {
     res.send(`Expense with id ${req.params.id} not found!`)
 });
 
-/**
- * @swagger
- * /expense/{id}:
- *  delete:
- *      description: Delete Expenses
- * 
- *      parameters:
- *      - in: path
- *        name: id
- *        schema:
- *          type: string
- *        description: id of the category
- * 
- *      responses:
- *          200:
- *              description: Success   
- */
 app.delete('/expense/:id', (req,res) => {
 
   for (let index = 0; index < expenses.length; index++) {
@@ -268,23 +140,6 @@ app.delete('/expense/:id', (req,res) => {
   
 });
 
-/**
- * @swagger
- * /expense/{id}:
- *  put:
- *      description: Update Expenses
- *
- *      parameters:
- *      - in: path
- *        name: id
- *        schema:
- *          type: string
- *        description: Expense ID
- *
- *      responses:
- *          200:
- *              description: Success
- */
 app.put('/expense/:id', (req,res) => {
     let body = req.body;
     let newExpense : Expense = {

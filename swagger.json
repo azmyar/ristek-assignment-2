@@ -1,0 +1,349 @@
+{
+    "definition": {
+      "openapi": "3.0.0",
+      "info": {
+        "title": "Expense API",
+        "version": "0.1.0",
+        "description": "Simple CRUD expense API documentation",
+        "license": {
+          "name": "MIT",
+          "url": "https://spdx.org/licenses/MIT.html"
+        }
+      },
+      "servers": [
+        {
+            "url": "http://localhost:3000"
+        }
+      ],
+      "paths": {
+        "/expense": {
+          "get": {
+            "description": "Retrieve List of Expenses",
+            "parameters": [
+              {
+                "in": "query",
+                "name": "category_id",
+                "schema": {
+                  "type": "string"
+                },
+                "description": "id of the category"
+              },
+              {
+                "in": "query",
+                "name": "min_price",
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "minimum price"
+              },
+              {
+                "in": "query",
+                "name": "max_price",
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "maximum price"
+              }
+            ],
+            "responses": {
+              "200": {
+                "description": "List of Expenses",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "example": "fa8337a7-a4b7-4257-a322-9d51473d9fc3"
+                          },
+                          "name": {
+                            "type": "string",
+                            "example": "Party"
+                          },
+                          "category": {
+                            "type": "string",
+                            "example": "Personal Expense"
+                          },
+                          "amount": {
+                            "type": "integer",
+                            "example": 20000
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "post": {
+            "description": "Create New Expense",
+            "requestBody": {
+              "required": true,
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "amount": {
+                        "type": "integer",
+                        "example": 20000
+                      },
+                      "category": {
+                        "type": "string",
+                        "example": "fa8337a7-a4b7-4257-a322-9d51473d9fc4"
+                      },
+                      "name": {
+                        "type": "string",
+                        "example": "Personal Expenses"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "responses": {
+              "201": {
+                "description": "Created",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/Expense"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "/expense/category": {
+          "get": {
+            "description": "Retrieve List of Expense Category",
+            "responses": {
+              "200": {
+                "description": "List of Expense Category",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "Category ID",
+                            "example": "fa8337a7-a4b7-4257-a322-9d51473d9fc4"
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "Name of category",
+                            "example": "Housing"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "/expense/total": {
+          "get": {
+            "description": "Retrieve Amount of Total Expenses",
+            "responses": {
+              "200": {
+                "description": "Amount of Total Expenses",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "total_expenses": {
+                          "type": "integer",
+                          "description": "Total Expenses",
+                          "example": 30000
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "/expense/{id}": {
+          "get": {
+            "description": "Retrieve Detail of Expenses",
+            "parameters": [
+              {
+                "name": "id",
+                "in": "path",
+                "description": "Expenses ID",
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "UUID"
+                }
+              }
+            ],
+            "responses": {
+              "200": {
+                "description": "Detail of Expenses",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "example": "3f5d8771-e77a-402e-833d-66eeffaeae16"
+                        },
+                        "name": {
+                          "type": "string",
+                          "example": "Party"
+                        },
+                        "category": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "example": "fa8337a7-a4b7-4257-a322-9d51473d9fc4"
+                            },
+                            "name": {
+                              "type": "string",
+                              "example": "Personal Expenses"
+                            }
+                          }
+                        },
+                        "amount": {
+                          "type": "integer",
+                          "example": 20000
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "delete": {
+            "description": "Delete Expenses",
+            "parameters": [
+              {
+                "name": "id",
+                "in": "path",
+                "description": "Expenses ID",
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "UUID"
+                }
+              }
+            ],
+            "responses": {
+              "200": {
+                "description": "Success",
+                "content": {
+                  "text/plain": {
+                    "schema": {
+                      "type": "string",
+                      "example": "Success delete expense with id fa8337a7-a4b7-4257-a322-9d51473d9fc3"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "put": {
+            "description": "Update Expenses",
+            "parameters": [
+              {
+                "name": "id",
+                "in": "path",
+                "description": "Expense ID",
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "UUID"
+                }
+              }
+            ],
+            "requestBody": {
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "amount": {
+                        "type": "number"
+                      },
+                      "category": {
+                        "type": "string",
+                        "format": "UUID"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "responses": {
+              "200": {
+                "description": "Success",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/Expense"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "components": {
+        "schemas": {
+          "Expense": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "3f5d8771-e77a-402e-833d-66eeffaeae16"
+              },
+              "name": {
+                "type": "string",
+                "example": "Party"
+              },
+              "category": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "example": "fa8337a7-a4b7-4257-a322-9d51473d9fc4"
+                  },
+                  "name": {
+                    "type": "string",
+                    "example": "Personal Expenses"
+                  },
+                  "amount": {
+                    "type": "integer",
+                    "example": 20000
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "tags": []
+    },
+    "apis": ["./dist/*.js"],
+    "customOptions": {}
+  }
